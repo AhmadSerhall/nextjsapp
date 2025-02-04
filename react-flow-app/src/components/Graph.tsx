@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useState, useMemo } from "react";
+import React, { useCallback, useState } from "react";
 import ReactFlow, {
   addEdge,
   Background,
@@ -18,6 +18,7 @@ export default function Graph() {
   const [nodeId, setNodeId] = useState(1);
   const [selectedNode, setSelectedNode] = useState<{ id: string; label: string } | null>(null);
 
+  // Add node function
   const addNode = (type: "user" | "habit", label: string) => {
     const newNodeId = `node-${nodeId}`;
     const newNode = {
@@ -67,9 +68,34 @@ export default function Graph() {
     setSelectedNode({ id: node.id, label: node.data.label });
   };
 
+  const handleHabitChange = (id: string, value: string) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === id ? { ...node, data: { ...node.data, label: value } } : node
+      )
+    );
+  };
+
   const nodeStyles = {
     user: { padding: "10px", border: "2px solid black", borderRadius: "5px", background: "#f8f9fa" },
     habit: { padding: "10px", border: "2px solid blue", borderRadius: "10px", background: "#dff0ff" },
+  };
+
+  const renderNode = (node: any) => {
+    if (node.type === "habit") {
+      return (
+        <select
+          value={node.data.label}
+          onChange={(e) => handleHabitChange(node.id, e.target.value)}
+          style={nodeStyles.habit}
+        >
+          <option value="Reading">Reading</option>
+          <option value="Exercise">Exercise</option>
+          <option value="Sleeping">Sleeping</option>
+        </select>
+      );
+    }
+    return <div style={nodeStyles.user}>{node.data.label}</div>;
   };
 
   return (
@@ -81,7 +107,7 @@ export default function Graph() {
             ...node,
             data: {
               ...node.data,
-              label: <div style={node.type === "user" ? nodeStyles.user : nodeStyles.habit}>{node.data.label}</div>,
+              label: renderNode(node), 
             },
           }))}
           edges={edges}
